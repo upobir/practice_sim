@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#### NOTE: ONLY FOR CHROME/CHROMIUM BROWSER, go to standings page, copy the sandings from all pages and paste
+#### copy the header row from first page only.
+#### don't have to care about a row appearing multiple times
+
 with open('input.txt', 'r', encoding="utf-8") as f:
     lines = f.readlines()
 
@@ -26,7 +30,9 @@ while True:
 
 file_out = open('output.txt', 'w', encoding='utf-8')
 
-file_out.write(str(len(problems))+'\n')
+file_out.write(' '.join(problems)+'\n')
+
+seen = set()
 
 while line_num < len(lines):
     rank = lines[line_num]
@@ -35,7 +41,10 @@ while line_num < len(lines):
     name = lines[line_num]
     line_num += 1
 
-    print(rank, name)
+    first_time = name not in seen
+    
+    if first_time:
+        print(rank, name)
 
     calculated_penalty = 0
     calculated_solved = 0
@@ -57,12 +66,16 @@ while line_num < len(lines):
             calculated_penalty += solved_time + non_ac_count * 20
             line_num += 1
 
-            file_out.write(name + ' ' + str(solved_time) + ' ' + str(non_ac_count)+'\n')
+            if first_time:
+                file_out.write(name + ' ---- ' + x + ' ' + str(solved_time) + ' ' + str(non_ac_count)+'\n')
 
         else:
             assert False
 
     solved, penalty = map(int, lines[line_num].split('\t'))
     line_num +=1
+
+    if first_time:
+        seen.add(name)
 
 file_out.close()
