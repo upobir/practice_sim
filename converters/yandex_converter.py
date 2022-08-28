@@ -72,6 +72,10 @@ while line_num < len(lines):
         else:
             assert False
 
+    if calculated_solved == 0:
+        if first_time:
+            file_out.write(name + ' ----\n')
+
     solved, penalty = map(int, lines[line_num].split('\t'))
     line_num +=1
 
