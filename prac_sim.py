@@ -2,6 +2,7 @@
 
 import sys
 import time
+import datetime
 import math
 
 # submissions.txt has problem codes in first line separated by space
@@ -37,8 +38,8 @@ if __name__ == "__main__":
         print('\t\tcreates local.txt with start time and team name, default team name is YOU')
         print('\tprac_sim.py ac <problem> <non_ac_count')
         print('\t\tupdates local.txt ac submission of problem with non_ac_count')
-        print('\tprac_sim.py rank')
-        print('\t\tgenerates rank list')
+        print('\tprac_sim.py rank <time_in_minutes>')
+        print('\t\tgenerates rank list, time is optional, start time and current time used by default')
         print('')
         print('\tIn all cases, keep submissions.txt in working directory')
 
@@ -54,13 +55,18 @@ if __name__ == "__main__":
         if sys.argv[1] == 'start':
         
             start_time = time.time()
+            start_time_str = time.ctime(start_time)
             team_name = sys.argv[2] if len(sys.argv) > 2 else 'YOU'
 
             assert team_name not in results
 
             file_out = open('local.txt','w', encoding='utf-8')
 
-            file_out.write(str(start_time) + '\n')
+            # print(start_time)
+            # print(time.ctime(start_time))
+            # print(datetime.datetime.strptime(time.ctime(start_time), "%a %b %d %H:%M:%S %Y").timestamp())
+
+            file_out.write(start_time_str + '\n')
             file_out.write(team_name + '\n')
 
             file_out.close()
@@ -73,7 +79,7 @@ if __name__ == "__main__":
             cur_time = time.time()
 
             with open('local.txt', 'r', encoding='utf-8') as f:
-                start_time = float(f.readline())
+                start_time = datetime.datetime.strptime(f.readline().strip(), "%a %b %d %H:%M:%S %Y").timestamp()
                 team_name = f.readline().strip()
             
             assert problem in problems
@@ -92,10 +98,13 @@ if __name__ == "__main__":
 
             lines = [line if line[-1] != '\n' else line[:-1] for line in lines]
 
-            start_time = float(lines[0])
+            start_time = start_time = datetime.datetime.strptime(lines[0], "%a %b %d %H:%M:%S %Y").timestamp()
             team_name = lines[1]
 
             elapsed_time = (cur_time - start_time)/60
+
+            if len(sys.argv) > 2:
+                elapsed_time = int(sys.argv[2])
 
             results[team_name] = [None] * len(problems)
 
