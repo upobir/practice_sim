@@ -23,11 +23,12 @@ def parse_submissions(lines):
         if not results:
             continue
         
-        problem, solve_time, non_ac_count = submission.split(' ')
-        solve_time = int(solve_time)
-        non_ac_count = int(non_ac_count)
+        if submission:
+            problem, solve_time, non_ac_count = submission.split(' ')
+            solve_time = int(solve_time)
+            non_ac_count = int(non_ac_count)
 
-        results[name][problems.index(problem)] = (solve_time, non_ac_count)
+            results[name][problems.index(problem)] = (solve_time, non_ac_count)
 
     return problems, results
 
