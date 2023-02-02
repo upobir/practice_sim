@@ -14,8 +14,10 @@ For teams with no AC, you can write `team_c ----` only. Currently there is an ya
 name the submissions file `submissions.txt` and run `prac_sim.py` to simulate contest
 
 - run `prac_sim.py start <name>` to start a virtual contest, a file named `local.txt` will be created with start time and team name
-- run `prac_sim.py ac <prob_code> <non_ac_count>` to update local file with your ac submission time
+- run `prac_sim.py ac <prob_code> <non_ac_count>` to update local file with your ac submission time (this will also generate html file)
 - run `prac_sim.py rank` to generate a html file with snapshot of the virtual at that moment. The html file is created from codemarshal's ui.
+
+You can edit the `local.txt` to update your own update times or start times. Just run the `rank` command to update html file.
 
 ## Issues
 Due to ranklists generally not showing seconds, the penalty score shown in generated html might differ very little from the actual penalty
