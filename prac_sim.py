@@ -11,6 +11,11 @@ import json
 # if a team has no ac, then the part after ---- is empty
 
 def parse_submissions(lines):
+    """
+    Given raw lines from submissions.txt will return
+    1. array of problem symbols
+    2. dictionary of results, key is team name, value is array of (solve_time, non_ac_count) or None (exactly in the same order as problem symbols)
+    """
     problems = lines[0].split(' ')
 
     results = {}
@@ -35,6 +40,9 @@ def parse_submissions(lines):
 
 
 def print_help():
+    """
+    Prints help message
+    """
     print('usage:')
     print('\tprac_sim.py start <team_name>')
     print('\t\tcreates local.txt with start time and team name, default team name is YOU')
@@ -47,6 +55,10 @@ def print_help():
 
 
 def start_contest(problems, results, team_name):
+    """
+    Creates local.txt with current start time and team name
+    also generates ranks
+    """
     start_time = time.time()
     start_time_str = time.ctime(start_time)
 
@@ -63,6 +75,10 @@ def start_contest(problems, results, team_name):
 
 
 def report_ac(problems, results, problem, non_ac_count):
+    """
+    adds accepted result to local.txt
+    also generates ranks
+    """
     cur_time = time.time()
 
     with open('local.txt', 'r', encoding='utf-8') as f:
@@ -80,7 +96,6 @@ def report_ac(problems, results, problem, non_ac_count):
 
 def gen_ranks(problems, results):
 
-    # cur_time = time.time()
     with open('local.txt', 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
@@ -89,10 +104,8 @@ def gen_ranks(problems, results):
     start_time = start_time = datetime.datetime.strptime(lines[0], "%a %b %d %H:%M:%S %Y").timestamp()
     team_name = lines[1]
 
-    # if elapsed_time is None:
-    #     elapsed_time = (cur_time - start_time)/60
-
     results[team_name] = [None] * len(problems)
+    user_solved = [False] * len(problems)
 
     for line in lines[2:]:
         problem, solve_time, non_ac_count = line.split(' ')
@@ -100,26 +113,9 @@ def gen_ranks(problems, results):
         non_ac_count = int(non_ac_count)
 
         results[team_name][problems.index(problem)] = (solve_time, non_ac_count)
+        user_solved[problems.index(problem)] = True
 
-    # scores = []
-
-    # for name, submissions in results.items():
-    #     solve_count = 0
-    #     penalty = 0
-
-    #     for i in range(len(problems)):
-    #         if submissions[i] is not None and submissions[i][0] > elapsed_time:
-    #             submissions[i] = None
-
-    #         if submissions[i] is not None:
-    #             solve_count += 1
-    #             penalty += submissions[i][0] + 20 * submissions[i][1]
-
-    #     scores.append((-solve_count, penalty, name))
-
-    # scores.sort()
-
-    codemarshal_rank(start_time, problems, results)
+    codemarshal_rank(start_time, problems, results, user_solved)
 
 
 def textfile_rank(elapsed_time, problems, scores, results):
@@ -147,30 +143,9 @@ def textfile_rank(elapsed_time, problems, scores, results):
             f.write(str(solve_count)+'\t' + str(penalty) + '\n')
 
 
-def codemarshal_rank(start_time, problems, results):
+def codemarshal_rank(start_time, problems, results, user_solved):
     with open('templates/codemarshal_template.html', 'r', encoding='utf-8') as f:
         template = f.read()
-
-    # remaining_time = 5*60-elapsed_time
-    # reamining_hour = math.floor(remaining_time/60)
-    # remaining_min = math.floor(remaining_time % 60)
-
-    # counts = [0] * len(problems)
-
-    # for name, submissions in results.items():
-    #     for i in range(len(problems)):
-    #         if submissions[i] is not None:
-    #             counts[i] += 1
-
-    # template = template.replace('[REMAINING]', 'Finished' if remaining_time < 0 else f'Remaining {reamining_hour}:{remaining_min}')
-    # template = template.replace('[PROBLEMS]', ''.join([f'<th style="width: 24px;"><a href="">{x}</a></th>' for x in problems]))
-    # template = template.replace('[COUNTS]', ''.join([f'<th class="text-center">{x}</th>' for x in counts]))
-
-    # row_head = lambda i, x : f'<td>{i}</td><td><a href="">{x[2]}</td><td><a href=""><div class="label label-info">{-x[0]}</div><div class="label label-default">{x[1]}</div></a><td style="width: 24px;"></td></td>'
-    # cell = lambda x : '' if x is None else f'<div class="label label-success">&nbsp;</div><div class="label label-default">{x[1]+1} ({x[0]})</div>'
-    # row_tail = lambda x : ''.join([f'<td><a href="">{cell(y)}</a></td>' for y in results[x[2]]])
-
-    # template = template.replace('[RANKS]', ''.join([f'<tr data-id="undefined">{row_head(i+1, x) + row_tail(x)}</tr>' for i, x in enumerate(scores)]))
 
     with open('ranks.html', 'w', encoding='utf-8') as f:
         f.write(template)
@@ -182,21 +157,23 @@ def codemarshal_rank(start_time, problems, results):
     script = script.replace('[PROBLEMS]', f"'{json.dumps(problems)}'")
     temp = json.dumps(results).replace("'", "\\'")
     script = script.replace('[RESULTS]', f"'{temp}'")
+    script = script.replace('[USER_SOLVED]', f"'{json.dumps(user_solved)}'")
 
     with open('script.js', 'w', encoding='utf-8') as f:
         f.write(script)
 
-
+# Entry point
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print_help()
 
     else:
+        # read submissions.txt as raw lines
         with open('submissions.txt', 'r', encoding='utf-8') as f:
             lines = f.readlines()
         
-        lines = [line if line[-1] != '\n' else line[:-1] for line in lines]
-        problems, results = parse_submissions(lines)
+        lines = [line if line[-1] != '\n' else line[:-1] for line in lines] # remove trailing newline
+        problems, results = parse_submissions(lines) 
 
         if sys.argv[1] == 'start':
             team_name = sys.argv[2] if len(sys.argv) > 2 else 'YOU'
@@ -208,5 +185,4 @@ if __name__ == "__main__":
             report_ac(problems, results, problem, non_ac_count)
         
         elif sys.argv[1] == 'rank':
-            # elapsed_time = int(sys.argv[2]) if len(sys.argv) > 2 else None
             gen_ranks(problems, results)

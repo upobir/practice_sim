@@ -1,45 +1,46 @@
-start_time = JSON.parse([START])
-problems = JSON.parse([PROBLEMS])
-results = JSON.parse([RESULTS])
+start_time = JSON.parse([START]);
+problems = JSON.parse([PROBLEMS]);
+results = JSON.parse([RESULTS]);
+user_solved = JSON.parse([USER_SOLVED]);
 
-counts = []
+counts = [];
 scores = []
 for(var i = 0; i<problems.length; i++){
-    counts.push(0)
+    counts.push(0);
 }
 
-cur_time = Date.now()/1000
+cur_time = Date.now()/1000;
 
-var remaining
+var remaining;
 if (cur_time - start_time > 5 * 60 * 60) {
-    remaining = "Finished"
+    remaining = "Finished";
 }
 else{
-    elapsed_time = cur_time - start_time
-    hours = Math.floor((5 * 60 * 60 - elapsed_time)/60/60)
-    minutes = Math.floor((5 * 60 * 60 - elapsed_time)/60)  % 60
-    seconds = Math.floor((5 * 60 * 60 - elapsed_time))  % 60
-    remaining = `Remaining: ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    elapsed_time = cur_time - start_time;
+    hours = Math.floor((5 * 60 * 60 - elapsed_time)/60/60);
+    minutes = Math.floor((5 * 60 * 60 - elapsed_time)/60)  % 60;
+    seconds = Math.floor((5 * 60 * 60 - elapsed_time))  % 60;
+    remaining = `Remaining: ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
-elapsed_time = (cur_time - start_time)/60
+elapsed_time = (cur_time - start_time)/60;
 
 for(var team in results){
-    var solve_count = 0
-    var penalty = 0
+    var solve_count = 0;
+    var penalty = 0;
 
     for(var i = 0; i<results[team].length; i++){
         if(results[team][i] !== null &&  results[team][i][0] > elapsed_time)
-            results[team][i] = null
+            results[team][i] = null;
 
         if(results[team][i] !== null){
-            solve_count += 1
-            penalty += results[team][i][0] + 20 * results[team][i][1]
-            counts[i]++
+            solve_count += 1;
+            penalty += results[team][i][0] + 20 * results[team][i][1];
+            counts[i]++;
         }
     }
 
-    scores.push([solve_count, penalty, team])
+    scores.push([solve_count, penalty, team]);
 }
 
 scores = scores.sort((a, b) => {
@@ -58,14 +59,21 @@ function pad(x){
         return y
 }
 
+function init() {
+    update();
+}
+
 function update(){
     document.querySelector('.h3').innerText = remaining
 
     table = document.querySelector('.table-standings')
 
     problem_row = table.children.item(0).children.item(0)
-    problems.forEach((x) => {
-        problem_row.innerHTML += `<th style="width: 24px;"><a href="">${x}</a></th>`
+    problems.forEach((x, i) => {
+        if (user_solved[i])
+            problem_row.innerHTML += `<th style="width: 24px;"><a href=""><div class="label label-success">${x}</div></a></th>`
+        else
+            problem_row.innerHTML += `<th style="width: 24px;"><a href="">${x}</a></th>`
     })
 
     count_row = table.children.item(0).children.item(1)
